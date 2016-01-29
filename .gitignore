@@ -1,2 +1,4 @@
 #IDE
 *.swp
+
+node_modules/
