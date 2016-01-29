@@ -114,7 +114,6 @@
       }
 
       function listenNewPlayer(params){
-        console.log(params)
         if(!players[params.id]){
           createPlayer(params)
         }
@@ -123,7 +122,6 @@
       function listenPlayersList(players){
         for(var i=0; i<players.length; i++){
           var newPlayerParams = players[i];
-          console.log(newPlayerParams);
 
           if(newPlayerParams.id != ownPlayer.id){
             createPlayer(newPlayerParams);
