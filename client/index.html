@@ -1,0 +1,138 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Walking</title>
+    <script type="text/javascript" charset="utf-8" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/static/vendor/phaser.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/static/js/builders/player_builder.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/static/js/builders/ground_builder.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/static/js/models/ground.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/static/js/models/player.js"></script>
+
+    <script type="text/javascript" charset="utf-8">
+      var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', { preload: preload, create: create, update: update }),
+        platforms, players = {}, cursors, ownPlayerId,
+        groundBuilder = new GroundBuilder(game),
+        playerBuilder = new PlayerBuilder(game);
+
+      var scoreText, server;
+
+
+      function preload() {
+        game.load.image('sky', '/static/assets/sky.png');
+        game.load.image('ground', '/static/assets/platform.png');
+        game.load.image('star', '/static/assets/star.png');
+        game.load.spritesheet('dude', '/static/assets/dude.png', 32, 48);
+      }
+
+      function create() {
+        /* GROUND */
+        //  We're going to be using physics, so enable the Arcade Physics system
+        game.stage.disableVisibilityChange = true;
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+        //  A simple background for our game
+        game.add.sprite(0, 0, 'sky');
+        //  The platforms group contains the ground and the 2 ledges we can jump on
+        platforms = game.add.group();
+        //  We will enable physics for any object that is created in this group
+        platforms.enableBody = true;
+
+        var ground = groundBuilder.create(platforms);
+        ground.turnOn();
+
+        //  Now let's create two ledges
+        var ledge = platforms.create(400, 400, 'ground');
+        ledge.body.immovable = true;
+        ledge = platforms.create(-150, 250, 'ground');
+        ledge.body.immovable = true;
+
+        cursors = game.input.keyboard.createCursorKeys();
+
+        // Creates score
+        //scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+        ownPlayer = createPlayer();
+
+        server = io();
+        server.on('player.new', listenNewPlayer);
+        server.on('players.list', listenPlayersList);
+        server.on('player.changePosition', listenPlayerChangePosition);
+        server.on('player.disconnect', listenPlayerDisconnect);
+        server.emit('player.new', currentPlayerPosition());
+      }
+
+      function update() {
+        for (var playerId in players){
+          players[playerId].resetVelocity();
+        }
+
+        if(cursors.left.isDown){
+          ownPlayer.moveLeft()
+        } else if(cursors.right.isDown){
+          ownPlayer.moveRight()
+        } else if(cursors.up.isDown){
+          ownPlayer.jump();
+        } else {
+          ownPlayer.stop();
+        }
+
+        notifyPlayerChangePosition();
+      }
+
+      function killPlayer(playerId){
+        players[playerId].kill();
+        delete players[playerId];
+      }
+
+      function createPlayer(playerId){
+        var player = playerBuilder.create({x: 102, y: game.world.height - 150, id: playerId})
+        player.turnOn();
+        players[player.id] = player;
+        return player;
+      }
+
+      function notifyPlayerChangePosition(){
+        server.emit('player.changePosition', currentPlayerPosition());
+      }
+
+      function listenPlayerChangePosition(params){
+        console.log("Mudou de posicao!", params);
+        var player = players[params.playerId];
+        player.changePosition(params);
+      }
+
+      function listenPlayerDisconnect(playerId){
+        killPlayer(playerId);
+      }
+
+      function listenNewPlayer(params){
+        if(!players[params.playerId]){
+          createPlayer(params.playerId)
+        }
+      }
+
+      function listenPlayersList(playerIds){
+        for(var i=0; i<playerIds.length; i++){
+          var playerId = playerIds[i];
+          if(!players[playerId]){
+            createPlayer(playerId);
+          }
+        }
+      }
+
+      function currentPlayerPosition(){
+        return {
+          playerId: ownPlayer.id,
+          x: ownPlayer.x,
+          y: ownPlayer.y
+        }
+      }
+
+    </script>
+  </head>
+
+  <body>
+    <div id="game"></div>
+    <span id="count"></span>
+  </body>
+</html>
