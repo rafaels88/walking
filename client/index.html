@@ -14,7 +14,8 @@
       var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', { preload: preload, create: create, update: update }),
         platforms, players = {}, cursors, ownPlayerId,
         groundBuilder = new GroundBuilder(game),
-        playerBuilder = new PlayerBuilder(game);
+        playerBuilder = new PlayerBuilder(game),
+        lastCurrentPlayerPositionNotified = undefined;
 
       var scoreText, server;
 
@@ -68,15 +69,18 @@
 
         if(cursors.left.isDown){
           ownPlayer.moveLeft()
+          notifyCurrentPlayerChangePosition();
         } else if(cursors.right.isDown){
           ownPlayer.moveRight()
+          notifyCurrentPlayerChangePosition();
         } else if(cursors.up.isDown){
           ownPlayer.jump();
+          notifyCurrentPlayerChangePosition();
         } else {
           ownPlayer.stop();
+          notifyCurrentPlayerChangePosition();
         }
 
-        notifyPlayerChangePosition();
       }
 
       function killPlayer(playerId){
@@ -91,8 +95,12 @@
         return player;
       }
 
-      function notifyPlayerChangePosition(){
-        server.emit('player.changePosition', currentPlayerPosition());
+      function notifyCurrentPlayerChangePosition(){
+        var currentPlayerPositionValue = currentPlayerPosition();
+        if(lastCurrentPlayerPositionNotified != currentPlayerPositionValue){
+          lastCurrentPlayerPositionNotified = currentPlayerPositionValue;
+          server.emit('player.changePosition', currentPlayerPosition());
+        }
       }
 
       function listenPlayerChangePosition(params){
@@ -124,7 +132,8 @@
         return {
           playerId: ownPlayer.id,
           x: ownPlayer.x,
-          y: ownPlayer.y
+          y: ownPlayer.y,
+          frame: ownPlayer.frame
         }
       }
 

@@ -48,4 +48,7 @@ Player.prototype.kill = function(){
 Player.prototype.changePosition = function(params){
   this.x = params.x;
   this.y = params.y;
+  if(params.frame){
+    this.frame = params.frame;
+  }
 }

@@ -12,46 +12,31 @@ function playersIdConnected(){
   }
   return ids;
 }
-function addNewPlayer(socket, playerId, x, y){
-  playersConnected[socket.id] = { id: playerId, x: x, y: y };
+function addNewPlayer(socket, params){
+  playersConnected[socket.id] = { id: params.playerId, x: params.x, y: params.y, frame: params.frame };
 }
 function removePlayer(socket){
   var playerId = playersConnected[socket.id]['id'];
   delete playersConnected[socket.id];
   return playerId;
 }
-function changePlayerPosition(socket, x, y){
-  playersConnected[socket.id]['x'] = x;
-  playersConnected[socket.id]['y'] = y;
+function changePlayerPosition(socket, params){
+  playersConnected[socket.id]['x'] = params.x;
+  playersConnected[socket.id]['y'] = params.y;
+  playersConnected[socket.id]['frame'] = params.frame;
 }
 
 io.on('connection', function(socket){
   socket.emit('players.list', playersIdConnected());
 
   socket.on('player.new', function(params){
-    addNewPlayer(socket, params.playerId, params.x, params.y);
+    addNewPlayer(socket, params);
     socket.broadcast.emit('player.new', params);
   });
 
   socket.on('player.changePosition', function(params){
-    //socket.emit('player.moveLeft', playerId);
-    changePlayerPosition(socket, params.x, params.y);
+    changePlayerPosition(socket, params);
     socket.broadcast.emit('player.changePosition', params);
-  });
-
-  socket.on('player.moveLeft', function(playerId){
-    socket.emit('player.moveLeft', playerId);
-    socket.broadcast.emit('player.moveLeft', playerId);
-  });
-
-  socket.on('player.moveRight', function(playerId){
-    socket.emit('player.moveRight', playerId);
-    socket.broadcast.emit('player.moveRight', playerId);
-  });
-
-  socket.on('player.moveJump', function(playerId){
-    socket.emit('player.moveJump', playerId);
-    socket.broadcast.emit('player.moveJump', playerId);
   });
 
   socket.on("disconnect", function(){
@@ -59,7 +44,6 @@ io.on('connection', function(socket){
     socket.broadcast.emit('player.disconnect', playerIdDisconnected);
   });
 });
-
 
 
 
