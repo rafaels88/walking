@@ -4,7 +4,7 @@
 npm install
 node index.js
 
-# open http://localhost:3100 in Browser
+# open http://localhost:3100 on Browser in two or more windows/tabs
 ```
 
 #### Dependecies
