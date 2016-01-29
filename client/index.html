@@ -52,7 +52,7 @@
 
         // Creates score
         //scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
-        ownPlayer = createPlayer();
+        ownPlayer = createPlayer({x: 102, y: game.world.height - 150});
 
         server = io();
         server.on('player.new', listenNewPlayer);
@@ -63,33 +63,31 @@
       }
 
       function update() {
-        for (var playerId in players){
-          players[playerId].resetVelocity();
+        for (var id in players){
+          players[id].resetVelocity();
         }
 
         if(cursors.left.isDown){
           ownPlayer.moveLeft()
-          notifyCurrentPlayerChangePosition();
         } else if(cursors.right.isDown){
           ownPlayer.moveRight()
-          notifyCurrentPlayerChangePosition();
         } else if(cursors.up.isDown){
           ownPlayer.jump();
-          notifyCurrentPlayerChangePosition();
         } else {
           ownPlayer.stop();
-          notifyCurrentPlayerChangePosition();
         }
 
+        notifyCurrentPlayerChangePosition();
+
       }
 
-      function killPlayer(playerId){
-        players[playerId].kill();
-        delete players[playerId];
+      function killPlayer(id){
+        players[id].kill();
+        delete players[id];
       }
 
-      function createPlayer(playerId){
-        var player = playerBuilder.create({x: 102, y: game.world.height - 150, id: playerId})
+      function createPlayer(playerParams){
+        var player = playerBuilder.create({x: playerParams.x, y: playerParams.y, id: playerParams.id, frame: playerParams.frame})
         player.turnOn();
         players[player.id] = player;
         return player;
@@ -97,40 +95,45 @@
 
       function notifyCurrentPlayerChangePosition(){
         var currentPlayerPositionValue = currentPlayerPosition();
-        if(lastCurrentPlayerPositionNotified != currentPlayerPositionValue){
+
+        if(JSON.stringify(lastCurrentPlayerPositionNotified) !== JSON.stringify(currentPlayerPositionValue)){
           lastCurrentPlayerPositionNotified = currentPlayerPositionValue;
-          server.emit('player.changePosition', currentPlayerPosition());
+          server.emit('player.changePosition', currentPlayerPositionValue);
         }
       }
 
       function listenPlayerChangePosition(params){
-        console.log("Mudou de posicao!", params);
-        var player = players[params.playerId];
-        player.changePosition(params);
-      }
-
-      function listenPlayerDisconnect(playerId){
-        killPlayer(playerId);
-      }
-
-      function listenNewPlayer(params){
-        if(!players[params.playerId]){
-          createPlayer(params.playerId)
+        if(params.id != ownPlayer.id){
+          var player = players[params.id];
+          player.changePosition(params);
         }
       }
 
-      function listenPlayersList(playerIds){
-        for(var i=0; i<playerIds.length; i++){
-          var playerId = playerIds[i];
-          if(!players[playerId]){
-            createPlayer(playerId);
+      function listenPlayerDisconnect(id){
+        killPlayer(id);
+      }
+
+      function listenNewPlayer(params){
+        console.log(params)
+        if(!players[params.id]){
+          createPlayer(params)
+        }
+      }
+
+      function listenPlayersList(players){
+        for(var i=0; i<players.length; i++){
+          var newPlayerParams = players[i];
+          console.log(newPlayerParams);
+
+          if(newPlayerParams.id != ownPlayer.id){
+            createPlayer(newPlayerParams);
           }
         }
       }
 
       function currentPlayerPosition(){
         return {
-          playerId: ownPlayer.id,
+          id: ownPlayer.id,
           x: ownPlayer.x,
           y: ownPlayer.y,
           frame: ownPlayer.frame

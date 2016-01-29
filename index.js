@@ -5,20 +5,20 @@ var io = require('socket.io')(http);
 
 var playersConnected = {};
 
-function playersIdConnected(){
-  var ids = [];
+function playersConnectedList(){
+  var players = [];
   for(var socketId in playersConnected){
-    ids.push(playersConnected[socketId]['id']);
+    players.push(playersConnected[socketId]);
   }
-  return ids;
+  return players;
 }
 function addNewPlayer(socket, params){
-  playersConnected[socket.id] = { id: params.playerId, x: params.x, y: params.y, frame: params.frame };
+  playersConnected[socket.id] = { id: params.id, x: params.x, y: params.y, frame: params.frame };
 }
 function removePlayer(socket){
-  var playerId = playersConnected[socket.id]['id'];
+  var id = playersConnected[socket.id]['id'];
   delete playersConnected[socket.id];
-  return playerId;
+  return id;
 }
 function changePlayerPosition(socket, params){
   playersConnected[socket.id]['x'] = params.x;
@@ -27,7 +27,7 @@ function changePlayerPosition(socket, params){
 }
 
 io.on('connection', function(socket){
-  socket.emit('players.list', playersIdConnected());
+  socket.emit('players.list', playersConnectedList());
 
   socket.on('player.new', function(params){
     addNewPlayer(socket, params);
@@ -40,8 +40,8 @@ io.on('connection', function(socket){
   });
 
   socket.on("disconnect", function(){
-    var playerIdDisconnected = removePlayer(socket);
-    socket.broadcast.emit('player.disconnect', playerIdDisconnected);
+    var idDisconnected = removePlayer(socket);
+    socket.broadcast.emit('player.disconnect', idDisconnected);
   });
 });
 

@@ -3,6 +3,9 @@ var PlayerBuilder = function(game){
 }
 PlayerBuilder.prototype.create = function(opts){
   var uiPlayer = this.game.add.sprite(opts.x, opts.y, 'dude');
+  if(opts.frame){
+    uiPlayer.frame = opts.frame;
+  }
   this.game.physics.arcade.enable(uiPlayer);
   return _.extend(uiPlayer, new Player({id: opts.id}))
 }
