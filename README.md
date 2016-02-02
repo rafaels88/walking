@@ -1,5 +1,7 @@
 ### Quickstart
 
+After cloning this project, on project root:
+
 ```bash
 npm install
 node index.js
