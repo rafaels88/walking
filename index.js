@@ -13,12 +13,14 @@ function playersConnectedList(){
   return players;
 }
 function addNewPlayer(socket, params){
-  playersConnected[socket.id] = { id: params.id, x: params.x, y: params.y, frame: params.frame };
+  playersConnected[socket.id] = params;
 }
 function removePlayer(socket){
-  var id = playersConnected[socket.id]['id'];
-  delete playersConnected[socket.id];
-  return id;
+  var player = playersConnected[socket.id];
+  if(player){
+    delete playersConnected[socket.id];
+    return player.id;
+  }
 }
 function changePlayerPosition(socket, params){
   playersConnected[socket.id]['x'] = params.x;
@@ -41,7 +43,9 @@ io.on('connection', function(socket){
 
   socket.on("disconnect", function(){
     var idDisconnected = removePlayer(socket);
-    socket.broadcast.emit('player.disconnect', idDisconnected);
+    if(idDisconnected){
+      socket.broadcast.emit('player.disconnect', idDisconnected);
+    }
   });
 });
 

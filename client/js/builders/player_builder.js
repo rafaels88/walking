@@ -7,5 +7,7 @@ PlayerBuilder.prototype.create = function(opts){
     uiPlayer.frame = opts.frame;
   }
   this.game.physics.arcade.enable(uiPlayer);
-  return _.extend(uiPlayer, new Player({id: opts.id}))
+  var player = _.extend(uiPlayer, new Player({id: opts.id}))
+  player.turnOn();
+  return player;
 }

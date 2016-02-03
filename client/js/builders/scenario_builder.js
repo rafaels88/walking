@@ -9,15 +9,21 @@ ScenarioBuilder.prototype.preparePhysics = function(){
 
 ScenarioBuilder.prototype.createGround = function(){
   var uiGround = this.platforms.create(0, this.game.world.height - 64, 'ground');
-  return _.extend(uiGround, new Ground());
+  var obj = _.extend(uiGround, new Ground());
+  obj.turnOn();
+  return obj;
 }
 
 ScenarioBuilder.prototype.createLedge = function(position){
   var uiLedge = this.platforms.create(position.x, position.y, 'ground');
-  return _.extend(uiLedge, new Ledge());
+  var obj = _.extend(uiLedge, new Ledge());
+  obj.turnOn();
+  return obj;
 }
 
 ScenarioBuilder.prototype.createSky = function(){
   this.game.add.sprite(0, 0, 'sky');
-  return new Sky();
+  var obj = new Sky();
+  obj.turnOn();
+  return obj;
 }
