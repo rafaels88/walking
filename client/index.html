@@ -6,138 +6,17 @@
     <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
     <script type="text/javascript" charset="utf-8" src="/static/vendor/phaser.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="/static/js/builders/player_builder.js"></script>
-    <script type="text/javascript" charset="utf-8" src="/static/js/builders/ground_builder.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/static/js/builders/scenario_builder.js"></script>
     <script type="text/javascript" charset="utf-8" src="/static/js/models/ground.js"></script>
     <script type="text/javascript" charset="utf-8" src="/static/js/models/player.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/static/js/models/sky.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/static/js/models/ledge.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/static/js/server_service.js"></script>
+    <script type="text/javascript" charset="utf-8" src="/static/js/game.js"></script>
 
     <script type="text/javascript" charset="utf-8">
-      var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', { preload: preload, create: create, update: update }),
-        platforms, players = {}, cursors, ownPlayerId,
-        groundBuilder = new GroundBuilder(game),
-        playerBuilder = new PlayerBuilder(game),
-        lastCurrentPlayerPositionNotified = undefined;
-
-      var scoreText, server;
-
-
-      function preload() {
-        game.load.image('sky', '/static/assets/sky.png');
-        game.load.image('ground', '/static/assets/platform.png');
-        game.load.image('star', '/static/assets/star.png');
-        game.load.spritesheet('dude', '/static/assets/dude.png', 32, 48);
-      }
-
-      function create() {
-        /* GROUND */
-        //  We're going to be using physics, so enable the Arcade Physics system
-        game.stage.disableVisibilityChange = true;
-        game.physics.startSystem(Phaser.Physics.ARCADE);
-        //  A simple background for our game
-        game.add.sprite(0, 0, 'sky');
-        //  The platforms group contains the ground and the 2 ledges we can jump on
-        platforms = game.add.group();
-        //  We will enable physics for any object that is created in this group
-        platforms.enableBody = true;
-
-        var ground = groundBuilder.create(platforms);
-        ground.turnOn();
-
-        //  Now let's create two ledges
-        var ledge = platforms.create(400, 400, 'ground');
-        ledge.body.immovable = true;
-        ledge = platforms.create(-150, 250, 'ground');
-        ledge.body.immovable = true;
-
-        cursors = game.input.keyboard.createCursorKeys();
-
-        // Creates score
-        //scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
-        ownPlayer = createPlayer({x: 102, y: game.world.height - 150});
-
-        server = io();
-        server.on('player.new', listenNewPlayer);
-        server.on('players.list', listenPlayersList);
-        server.on('player.changePosition', listenPlayerChangePosition);
-        server.on('player.disconnect', listenPlayerDisconnect);
-        server.emit('player.new', currentPlayerPosition());
-      }
-
-      function update() {
-        for (var id in players){
-          players[id].resetVelocity();
-        }
-
-        if(cursors.left.isDown){
-          ownPlayer.moveLeft()
-        } else if(cursors.right.isDown){
-          ownPlayer.moveRight()
-        } else if(cursors.up.isDown){
-          ownPlayer.jump();
-        } else {
-          ownPlayer.stop();
-        }
-
-        notifyCurrentPlayerChangePosition();
-
-      }
-
-      function killPlayer(id){
-        players[id].kill();
-        delete players[id];
-      }
-
-      function createPlayer(playerParams){
-        var player = playerBuilder.create({x: playerParams.x, y: playerParams.y, id: playerParams.id, frame: playerParams.frame})
-        player.turnOn();
-        players[player.id] = player;
-        return player;
-      }
-
-      function notifyCurrentPlayerChangePosition(){
-        var currentPlayerPositionValue = currentPlayerPosition();
-
-        if(JSON.stringify(lastCurrentPlayerPositionNotified) !== JSON.stringify(currentPlayerPositionValue)){
-          lastCurrentPlayerPositionNotified = currentPlayerPositionValue;
-          server.emit('player.changePosition', currentPlayerPositionValue);
-        }
-      }
-
-      function listenPlayerChangePosition(params){
-        if(params.id != ownPlayer.id){
-          var player = players[params.id];
-          player.changePosition(params);
-        }
-      }
-
-      function listenPlayerDisconnect(id){
-        killPlayer(id);
-      }
-
-      function listenNewPlayer(params){
-        if(!players[params.id]){
-          createPlayer(params)
-        }
-      }
-
-      function listenPlayersList(players){
-        for(var i=0; i<players.length; i++){
-          var newPlayerParams = players[i];
-
-          if(newPlayerParams.id != ownPlayer.id){
-            createPlayer(newPlayerParams);
-          }
-        }
-      }
-
-      function currentPlayerPosition(){
-        return {
-          id: ownPlayer.id,
-          x: ownPlayer.x,
-          y: ownPlayer.y,
-          frame: ownPlayer.frame
-        }
-      }
-
+      var game = new Game({containerId: 'game', resolution: { x: 800, y: 600 }});
+      game.run();
     </script>
   </head>
 

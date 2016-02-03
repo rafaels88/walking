@@ -52,3 +52,12 @@ Player.prototype.changePosition = function(params){
     this.frame = params.frame;
   }
 }
+
+Player.prototype.currentState = function(){
+  return {
+    id: this.id,
+    x: this.x,
+    y: this.y,
+    frame: this.frame
+  }
+}
