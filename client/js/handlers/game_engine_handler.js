@@ -22,6 +22,8 @@ GameEngineHandler.prototype.loadAssets = function(){
   this.engine.load.image('ground', '/static/assets/platform.png');
   this.engine.load.image('star', '/static/assets/star.png');
   this.engine.load.spritesheet('dude', '/static/assets/dude.png', 32, 48);
+  this.engine.load.image('arrow', '/static/assets/arrow.png');
+  this.engine.load.image('bullet', '/static/assets/purple_ball.png');
 }
 
 GameEngineHandler.prototype.loadPhysics = function(){
@@ -35,4 +37,8 @@ GameEngineHandler.prototype.worldHeight = function(){
 
 GameEngineHandler.prototype.createCursor = function(){
   return this.engine.input.keyboard.createCursorKeys();
+}
+
+GameEngineHandler.prototype.keyboard = function(){
+  return this.engine.input.keyboard;
 }

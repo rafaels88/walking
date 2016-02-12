@@ -33,7 +33,7 @@ Game.prototype.create = function(){
 Game.prototype.update = function(){
   this.currentPlayer.resetVelocity();
   this.joystick.listenInputs();
-  this.notificationsHandler.notifyCurrentPlayerChangePosition();
+  this.notificationsHandler.notifyPlayerChangePosition(this.currentPlayer);
 }
 
 Game.prototype.createPlayer = function(params){

@@ -42,11 +42,11 @@ NotificationsHandler.prototype.listenPlayersList = function(players){
   }
 }
 
-NotificationsHandler.prototype.notifyCurrentPlayerChangePosition = function(){
-  var currentPlayerPositionValue = this.game.currentPlayer.currentState();
+NotificationsHandler.prototype.notifyPlayerChangePosition = function(player){
+  var currentPlayerPositionValue = player.currentState();
 
   if(JSON.stringify(this.lastCurrentPlayerPositionNotified) !== JSON.stringify(currentPlayerPositionValue)){
     this.lastCurrentPlayerPositionNotified = currentPlayerPositionValue;
-    this.serverService.notifyPlayerChangePosition(this.game.currentPlayer);
+    this.serverService.notifyPlayerChangePosition(player);
   }
 }

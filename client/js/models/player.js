@@ -1,6 +1,7 @@
 var Player = function(opts){
   this.id = opts.id || _.uniqueId('id_') + Math.random() * 10;
   this.enemy = opts.enemy;
+  this.gun = undefined;
 }
 
 Player.prototype.turnOn = function(){
@@ -16,6 +17,10 @@ Player.prototype.turnOn = function(){
   if(this.enemy === true){
     this.body.moves = false;
   }
+}
+
+Player.prototype.addGun = function(gun){
+  this.gun = gun;
 }
 
 Player.prototype.resetVelocity = function(){
@@ -39,6 +44,10 @@ Player.prototype.stop = function(){
 
 Player.prototype.jump = function(){
   this.body.velocity.y = -250;
+}
+
+Player.prototype.shoot = function(){
+  this.gun.fire({playerPosition: { x: this.x, y: this.y }});
 }
 
 Player.prototype.kill = function(){
